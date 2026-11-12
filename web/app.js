@@ -279,22 +279,30 @@ function downloadBlob(filename, content, type) {
 
 async function init() {
   const modePill = document.getElementById("mode-pill");
-  try {
-    const res = await fetch("/api/report");
-    if (res.ok && res.headers.get("content-type")?.includes("application/json")) {
-      const data = await res.json();
-      isPythonBackend = true;
-      modePill.textContent = "Python Engine Connected";
-      modePill.className = "pill pill-live";
-      renderReport(data);
-    } else {
-      throw new Error("Static mode");
-    }
-  } catch {
+  const isStaticHost = window.location.hostname.endsWith(".vercel.app") || window.location.hostname.endsWith(".github.io");
+  if (isStaticHost) {
     isPythonBackend = false;
     modePill.textContent = "Interactive Replay Mode";
     modePill.className = "pill pill-info";
     renderReport(generateClientDemoPackets("mixed"));
+  } else {
+    try {
+      const res = await fetch("/api/report");
+      if (res.ok && res.headers.get("content-type")?.includes("application/json")) {
+        const data = await res.json();
+        isPythonBackend = true;
+        modePill.textContent = "Python Engine Connected";
+        modePill.className = "pill pill-live";
+        renderReport(data);
+      } else {
+        throw new Error("Static mode");
+      }
+    } catch {
+      isPythonBackend = false;
+      modePill.textContent = "Interactive Replay Mode";
+      modePill.className = "pill pill-info";
+      renderReport(generateClientDemoPackets("mixed"));
+    }
   }
 
   document.getElementById("btn-simulate").addEventListener("click", async () => {
