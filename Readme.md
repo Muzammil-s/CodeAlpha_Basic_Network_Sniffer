@@ -6,6 +6,11 @@
 
 ---
 
+## Live Demo
+
+- **Production URL:** [https://networkscope-web.vercel.app/](https://networkscope-web.vercel.app/)
+- **Mode:** Live simulated web monitoring dashboard deployed on Vercel (Python Scapy CLI included in repo for local capture).
+
 ## Application Preview
 
 ![NetworkScope Defensive Packet Inspector](docs/screenshot.png)
