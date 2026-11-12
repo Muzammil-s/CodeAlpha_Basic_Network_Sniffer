@@ -1,76 +1,107 @@
-# 🖥 CodeAlpha Basic Network Sniffer
+# NetworkScope (CodeAlpha Network Sniffer Upgrade)
 
-## 📌 Overview
-This project was developed as part of the **CodeAlpha Cyber Security Internship**.  
-It captures and analyzes live network traffic using Python and the Scapy library.
+**NetworkScope** is a Python defensive packet analysis CLI and interactive web monitoring dashboard built on top of the original `CodeAlpha_Basic_Network_Sniffer` project. It pairs Scapy-based packet capture and `.pcap` file analysis with a deterministic traffic simulator and heuristic anomaly detector.
 
-## 🎯 Objectives
-- Understand how data packets move through a network.
-- Use Scapy to capture and inspect packets.
-- Display source IP, destination IP, and protocol type.
+> **Educational & Defensive Notice:** NetworkScope is designed strictly for authorized local diagnostics, defensive monitoring, and cybersecurity learning. Capture live packets only on networks and hosts you own or have explicit permission to inspect.
 
-## ⚙️ Tools Used
-- Python 3.x  
-- Scapy  
-- Npcap (Windows packet capture driver)
+---
 
-## 🚀 How to Run
-```bash
-pip install scapy
-python network_sniffer.py
-🧠 Sample Output
-[+] Source: 192.168.100.19 --> Destination: 142.250.202.104
-    Protocol: 6
-------------------------------------------------------------
+## Application Preview
 
-📁 Project Structure
+![NetworkScope Defensive Packet Inspector](docs/screenshot.png)
+
+
+## Key Features
+
+- **Three Capture & Analysis Modes**
+  - `--live`: Live NIC packet sniffing via Scapy (requires Npcap on Windows or `root`/`CAP_NET_RAW` on Linux/macOS).
+  - `--pcap <file>`: Offline inspection of `.pcap` / `.pcapng` packet captures.
+  - `--demo`: Deterministic simulated security scenarios (`mixed`, `recon`, `cleartext`, `dns_anomaly`) for safe testing without elevated privileges.
+- **Defensive Heuristic Detection Engine**
+  - Multi-port sweep / reconnaissance detection (`>= 8` distinct destination ports).
+  - Elevated unanswered TCP SYN burst heuristic.
+  - Unencrypted transport detection (HTTP/80, Telnet/23, FTP/21) and cleartext credential keyword warnings.
+  - High-risk service port alerts (Telnet, SMB, RDP, VNC, port 4444).
+  - Shannon entropy & long-label DNS anomaly detection.
+- **Interactive Web Monitoring Dashboard (`--dashboard`)**
+  - Zero-dependency Python HTTP server with JSON/CSV export endpoints (`/api/report`, `/api/simulate`, `/api/export.json`, `/api/export.csv`).
+  - Client-side fallback replay & JSON log inspection mode when the `web/` directory is hosted statically (e.g., Vercel or GitHub Pages).
+- **Automated Unit Tests**: `unittest` suite covering entropy scoring, port-sweep heuristics, alert generation, and CSV serialization.
+
+---
+
+## Tech Stack
+
+- **Backend & CLI:** Python 3.10+, Scapy (optional for `--demo` / web UI), `http.server`, `unittest`
+- **Dashboard Frontend:** Semantic HTML5, CSS3 (dark security telemetry theme), Vanilla JavaScript
+
+---
+
+## Project Structure
+
+```text
 CodeAlpha_Basic_Network_Sniffer/
-├── network_sniffer.py
-├── README.md
-└── sample_output.txt
-
-🏁 Internship Info
-
-Internship: CodeAlpha Cyber Security
-Intern: Muzammil
-Task: Basic Network Sniffer
-Status: ✅ Completed Successfully
-
-
-Save it (`Ctrl + S`).
-
----
-
-## 🌐 STEP 6 – Push to GitHub from VS Code
-1. In VS Code left sidebar, click **Source Control (icon of branch)**  
-2. Click **“Publish to GitHub”** (or “Initialize Repository” → then Publish)  
-3. Name the repo:
-
-
-CodeAlpha_Basic_Network_Sniffer
-
-4. Add a short description:
-
-
-A Python-based network sniffer built during CodeAlpha Cyber Security Internship.
-
-5. Click **Publish Repository** ✅  
-
-VS Code will automatically push all three files to GitHub.
+├── networkscope/
+│   ├── __init__.py
+│   ├── models.py         # PacketRecord, FlowSummary, SecurityAlert dataclasses
+│   ├── detector.py       # Flow aggregation & defensive heuristic rules
+│   ├── sniffer.py        # Scapy live/pcap adapter + deterministic replay generator
+│   └── server.py         # Local HTTP dashboard & export API
+├── web/
+│   ├── index.html        # Interactive NetworkScope dashboard
+│   ├── styles.css
+│   └── app.js            # Connects to Python API or runs standalone browser replay
+├── tests/
+│   └── test_networkscope.py
+├── network_sniffer.py    # Main CLI entrypoint
+├── requirements.txt
+├── LICENSE
+└── README.md
+```
 
 ---
 
-## 💼 STEP 7 – LinkedIn Post Caption (copy-ready)
+## Setup & Usage
 
+### 1. Run Deterministic Demo + Web Dashboard (Zero External Dependencies Required)
 
+```bash
+python network_sniffer.py --demo --scenario mixed --dashboard
+```
 
-🚀 Completed Task 1: Basic Network Sniffer | CodeAlpha Cyber Security Internship
+Then open `http://127.0.0.1:8765` in your browser.
 
-Excited to share my first project developed during the CodeAlpha Cyber Security Internship.
-Built a Python-based Network Sniffer using the Scapy library to capture live network packets and display source/destination IPs and protocol information.
+### 2. Run Live Packet Capture (Requires Scapy + Packet Driver)
 
-🧠 Tech Stack: Python | Scapy | Npcap
-📂 GitHub: [Add your repo link]
-🏢 Internship: CodeAlpha — Cyber Security Domain
+```bash
+pip install -r requirements.txt
+python network_sniffer.py --live --count 30 --dashboard
+```
 
-#CodeAlpha #CyberSecurity #Python #Networking #Internship #Scapy #NetworkSniffer
+- **Windows:** Install [Npcap](https://npcap.com/) (with WinPcap API-compatible mode) and run terminal as Administrator.
+- **Linux / macOS:** Run with `sudo` or appropriate `CAP_NET_RAW` permissions.
+
+### 3. Analyze an Offline PCAP & Export Reports
+
+```bash
+python network_sniffer.py --pcap sample.pcap --export-json report.json --export-csv packets.csv
+```
+
+### 4. Run Automated Tests
+
+```bash
+python -m unittest discover -s tests -v
+```
+
+---
+
+## Known Limitations
+
+- Live sniffing requires OS-level raw socket privileges and Npcap/libpcap; environments without those drivers should use `--demo`, `--pcap`, or load exported JSON logs in the web UI.
+- Heuristics are rule-based educational indicators (not a replacement for enterprise IDS/IPS such as Suricata or Zeek) and may produce false positives on legitimate high-port or CDN DNS traffic.
+
+---
+
+## Author
+
+**Muzammil Shabbir** — [GitHub](https://github.com/Muzammil-s) · [LinkedIn](https://www.linkedin.com/in/muzammil-shabbir-7368a7382)

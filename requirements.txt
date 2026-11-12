@@ -1,0 +1,2 @@
+# Live packet capture & PCAP parsing (optional for demo/replay mode; required for live NIC sniffing)
+scapy>=2.5.0

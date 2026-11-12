@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NetworkScope — Defensive Packet Analysis & Monitoring</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-badge">NS</div>
+        <div>
+          <h1>NetworkScope</h1>
+          <p class="subtitle">Defensive Packet Inspector &amp; Anomaly Telemetry</p>
+        </div>
+      </div>
+      <div class="controls">
+        <span id="mode-pill" class="pill pill-info">Initializing...</span>
+        <select id="scenario-select" aria-label="Select traffic simulation scenario">
+          <option value="mixed">Scenario: Mixed Security Audit</option>
+          <option value="recon">Scenario: Port Sweep Reconnaissance</option>
+          <option value="cleartext">Scenario: Cleartext Credential Leak</option>
+          <option value="dns_anomaly">Scenario: High-Entropy DNS Query</option>
+        </select>
+        <button id="btn-simulate" class="btn btn-primary">Run Simulation</button>
+        <label class="btn btn-secondary" for="upload-json">Load Capture JSON</label>
+        <input id="upload-json" type="file" accept=".json" hidden />
+        <button id="btn-export-csv" class="btn btn-secondary">Export CSV</button>
+        <button id="btn-export-json" class="btn btn-secondary">Export JSON</button>
+      </div>
+    </header>
+
+    <div class="notice-banner" role="note">
+      <strong>Defensive &amp; Educational Scope:</strong> Live NIC capture runs via the Python Scapy CLI (`python network_sniffer.py --live`). Browser sessions run deterministic packet replay or analyze exported NetworkScope JSON logs locally.
+    </div>
+
+    <section class="kpi-grid" aria-label="Telemetry summary">
+      <article class="kpi-card">
+        <span class="kpi-label">Packets Captured</span>
+        <strong id="kpi-packets" class="kpi-value">0</strong>
+        <span id="kpi-bytes" class="kpi-sub">0 B total</span>
+      </article>
+      <article class="kpi-card">
+        <span class="kpi-label">Unique Flows</span>
+        <strong id="kpi-flows" class="kpi-value">0</strong>
+        <span class="kpi-sub">Src → Dst tuples</span>
+      </article>
+      <article class="kpi-card kpi-alert">
+        <span class="kpi-label">Security Alerts</span>
+        <strong id="kpi-alerts" class="kpi-value">0</strong>
+        <span id="kpi-severity" class="kpi-sub">0 High · 0 Medium</span>
+      </article>
+      <article class="kpi-card">
+        <span class="kpi-label">Top Protocol</span>
+        <strong id="kpi-top-proto" class="kpi-value">—</strong>
+        <span id="kpi-proto-share" class="kpi-sub">Protocol breakdown</span>
+      </article>
+    </section>
+
+    <main class="grid-layout">
+      <section class="panel">
+        <div class="panel-header">
+          <h2>Protocol &amp; Port Telemetry</h2>
+          <span class="badge">Live Heuristics</span>
+        </div>
+        <div class="charts-split">
+          <div>
+            <h3>Protocol Distribution</h3>
+            <div id="protocol-bars" class="bar-list"></div>
+          </div>
+          <div>
+            <h3>Most Targeted Destination Ports</h3>
+            <div id="port-bars" class="bar-list"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header">
+          <h2>Defensive Heuristic Alerts</h2>
+          <span id="alert-count-badge" class="badge badge-warn">0</span>
+        </div>
+        <div id="alerts-list" class="alerts-list"></div>
+      </section>
+
+      <section class="panel panel-full">
+        <div class="panel-header">
+          <h2>Aggregated Network Flows</h2>
+          <span class="badge">Top Talkers by Bytes</span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Flow</th>
+                <th>Protocol</th>
+                <th>Packets</th>
+                <th>Bytes</th>
+                <th>Destination Ports</th>
+              </tr>
+            </thead>
+            <tbody id="flows-tbody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="panel panel-full">
+        <div class="panel-header">
+          <h2>Packet Inspector</h2>
+          <div class="filter-bar">
+            <input id="packet-search" type="search" placeholder="Filter by IP, port, DNS, or info..." aria-label="Filter packets" />
+            <select id="proto-filter" aria-label="Filter by protocol">
+              <option value="ALL">All Protocols</option>
+              <option value="TCP">TCP</option>
+              <option value="UDP">UDP</option>
+              <option value="DNS">DNS</option>
+              <option value="ICMP">ICMP</option>
+            </select>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Timestamp</th>
+                <th>Protocol</th>
+                <th>Source</th>
+                <th>Destination</th>
+                <th>Dir</th>
+                <th>Len</th>
+                <th>Info / Payload</th>
+              </tr>
+            </thead>
+            <tbody id="packets-tbody"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>
